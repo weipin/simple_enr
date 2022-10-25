@@ -1,14 +1,27 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+// Copyright 2022 Developers of the simple_enr project.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+pub(crate) mod base64;
+mod builder;
+pub(crate) mod predefined_keys;
+mod publishable_record;
+pub(crate) mod record;
+mod scheme;
+mod scheme_v4;
+mod storage;
+mod storage_content_rlp;
+mod storage_content_with_signature_rlp;
+mod storage_rlp_decoding;
+mod storage_rlp_encoding;
 #[cfg(test)]
-mod tests {
-    use super::*;
+mod testing_helper;
+mod textual_form;
+mod types;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use builder::Builder;
+pub use publishable_record::PublishableRecord;
+pub use record::Record;
+pub use scheme_v4::Schemev4;
