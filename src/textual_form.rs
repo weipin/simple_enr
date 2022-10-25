@@ -54,7 +54,7 @@ mod tests {
     use super::*;
     use crate::builder::Builder;
     use crate::scheme_v4::Schemev4;
-    use crate::testing_helper::{Ipv4AddrOctets, Ipv6AddrOctets};
+    use crate::testing_helper::{Ipv4AddrOctets, Ipv6AddrOctets, EXAMPLE_RECORD_ADDRESS};
     use fastrlp::DecodeError::InputTooShort;
     use hex_literal::hex;
     use quickcheck_macros::quickcheck;
@@ -62,14 +62,8 @@ mod tests {
     use secp256k1::{PublicKey, SecretKey, SECP256K1};
     use std::net::{Ipv4Addr, Ipv6Addr};
 
-    const EXAMPLE_RECORD_ADDRESS: &str = concat!(
-        "enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjz",
-        "CBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1Nmsx",
-        "oQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8"
-    );
-
     #[test]
-    fn test_from_to_textual_spec_sample() {
+    fn test_textual_double_conversion_with_spec_sample() {
         let result = Record::from_textual_form::<Schemev4>(EXAMPLE_RECORD_ADDRESS);
         assert!(result.is_ok());
         let record = result.unwrap();

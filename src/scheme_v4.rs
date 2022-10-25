@@ -1,6 +1,12 @@
 use crate::scheme::Scheme;
+use rand::RngCore;
 use secp256k1::{ecdsa, Message, SECP256K1};
 use sha3::{Digest, Keccak256};
+
+#[cfg(test)]
+use self::MockOsRng as OsRng;
+#[cfg(not(test))]
+use rand::rngs::OsRng;
 
 pub struct Schemev4;
 
@@ -40,7 +46,13 @@ impl Scheme for Schemev4 {
         private_key: &Self::PrivateKey,
     ) -> Result<Self::Signature, Self::SigningError> {
         let msg = Message::from_slice(hash)?;
-        Ok(SECP256K1.sign_ecdsa(&msg, private_key))
+        let signature = {
+            let mut noncedata = [0; 32];
+            OsRng.fill_bytes(&mut noncedata);
+            SECP256K1.sign_ecdsa_with_noncedata(&msg, private_key, &noncedata)
+        };
+
+        Ok(signature)
     }
 
     fn verify(
@@ -58,6 +70,36 @@ impl Scheme for Schemev4 {
         let uncompressed = &public_key.serialize_uncompressed()[1..];
         let hash = Keccak256::digest(uncompressed);
         hex::encode(&hash)
+    }
+}
+
+#[cfg(test)]
+const MOCK_ECDSA_NONCE_ADDITIONAL_DATA: [u8; 32] = [
+    // 0xbaaaaaad...
+    0xba, 0xaa, 0xaa, 0xad, 0xba, 0xaa, 0xaa, 0xad, 0xba, 0xaa, 0xaa, 0xad, 0xba, 0xaa, 0xaa, 0xad,
+    0xba, 0xaa, 0xaa, 0xad, 0xba, 0xaa, 0xaa, 0xad, 0xba, 0xaa, 0xaa, 0xad, 0xba, 0xaa, 0xaa, 0xad,
+];
+
+#[cfg(test)]
+struct MockOsRng;
+
+#[cfg(test)]
+impl RngCore for MockOsRng {
+    fn next_u32(&mut self) -> u32 {
+        unimplemented!();
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        unimplemented!();
+    }
+
+    fn fill_bytes(&mut self, dest: &mut [u8]) {
+        debug_assert_eq!(dest.len(), MOCK_ECDSA_NONCE_ADDITIONAL_DATA.len());
+        dest.copy_from_slice(&MOCK_ECDSA_NONCE_ADDITIONAL_DATA);
+    }
+
+    fn try_fill_bytes(&mut self, _dest: &mut [u8]) -> Result<(), rand::Error> {
+        unimplemented!();
     }
 }
 
