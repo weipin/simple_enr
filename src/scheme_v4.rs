@@ -69,7 +69,7 @@ impl Scheme for Schemev4 {
         // uncompressed keys are 65 bytes, consisting of constant prefix (0x04)
         let uncompressed = &public_key.serialize_uncompressed()[1..];
         let hash = Keccak256::digest(uncompressed);
-        hex::encode(&hash)
+        hex::encode(hash)
     }
 }
 
