@@ -6,7 +6,7 @@ use enr::{k256, Enr};
 use simple_enr::{Record, Schemev4};
 use test::Bencher;
 
-pub(crate) const EXAMPLE_RECORD_ADDRESS: &str = concat!(
+const EXAMPLE_RECORD_ADDRESS: &str = concat!(
     "enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjz",
     "CBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1Nmsx",
     "oQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8",
