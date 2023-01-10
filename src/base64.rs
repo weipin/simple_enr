@@ -4,7 +4,7 @@ use crate::storage_content_with_signature_rlp::{
 use crate::storage_rlp_decoding::RlpDecodingError;
 use base64::alphabet::URL_SAFE;
 use base64::engine::fast_portable::{FastPortable, FastPortableConfig};
-use base64::engine::{DecodeEstimate, Engine};
+use base64::engine::{DecodeEstimate, DecodePaddingMode, Engine};
 use base64::{decode_engine_slice, encode_engine_slice};
 
 impl StorageWithSignatureRlp {
@@ -31,7 +31,8 @@ pub(crate) static URL_SAFE_CONFIG: FastPortable = FastPortable::from(
     &URL_SAFE,
     FastPortableConfig::new()
         .with_encode_padding(false)
-        .with_decode_allow_trailing_bits(false),
+        .with_decode_allow_trailing_bits(false)
+        .with_decode_padding_mode(DecodePaddingMode::RequireNone),
 );
 
 #[cfg(test)]
