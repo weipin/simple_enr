@@ -8,13 +8,12 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 
 impl Storage {
     pub(crate) fn from_rlp<S: Scheme>(buf: &mut &[u8]) -> Result<Storage, RlpDecodingError> {
-        // TODO: this is a mess
-        let h = Header::decode(buf).map_err(RlpDecodingError::DecodingRLPError)?;
-        if !h.list {
+        let header = Header::decode(buf).map_err(RlpDecodingError::DecodingRLPError)?;
+        if !header.list {
             return Err(RlpDecodingError::InvalidFormat);
         }
 
-        let payload_view = &mut &buf[..h.payload_length];
+        let payload_view = &mut &buf[..header.payload_length];
         if payload_view.is_empty() {
             return Err(RlpDecodingError::EmptyPayload);
         }
@@ -37,6 +36,7 @@ impl Storage {
         while !payload_view.is_empty() {
             let key = Bytes::decode(payload_view).map_err(RlpDecodingError::DecodingRLPError)?;
             if key <= previous_key {
+                // The key/value pairs must be sorted by key and must be unique
                 return Err(RlpDecodingError::KeyNotInOrderOrDuplicate);
             }
             previous_key = key.clone();
@@ -94,12 +94,12 @@ impl Storage {
                 }
                 _ => {
                     // unknown pair
-                    let h =
+                    let header =
                         Header::decode(payload_view).map_err(RlpDecodingError::DecodingRLPError)?;
-                    if h.list {
+                    if header.list {
                         return Err(RlpDecodingError::InvalidPair);
                     }
-                    payload_view.advance(h.payload_length);
+                    payload_view.advance(header.payload_length);
                 }
             }
         } // while payload_view.is_empty
@@ -191,7 +191,7 @@ mod tests {
             hex!("7098ad865b00a582051940cb9cf36836572411a47278783077011599ed5cd16b76f2635f4e234738f30813a89eb9137e3e3df5266e3a1f11df72ecf1145ccb9c")
         );
         assert_eq!(storage.seq, 1);
-        assert_eq!(storage.id.unwrap(), "v4");
+        assert_eq!(storage.id.unwrap(), b"v4");
         assert_eq!(storage.ip4.unwrap(), Ipv4Addr::from([127, 0, 0, 1]));
         assert_eq!(
             storage.public_key_value.unwrap(),
@@ -249,7 +249,7 @@ mod tests {
 
         let storage = Storage::from_rlp::<Schemev4>(&mut &rlp_data[0..size]).unwrap();
         assert_eq!(storage.seq, seq);
-        assert_eq!(storage.id.unwrap(), "v4");
+        assert_eq!(storage.id.unwrap(), b"v4");
         assert_eq!(
             storage.public_key_value.unwrap(),
             Schemev4::public_key_to_value(&public_key)
